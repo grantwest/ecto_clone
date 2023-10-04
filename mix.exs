@@ -3,6 +3,7 @@ defmodule EctoGraf.MixProject do
 
   @version "0.1.0"
   @description "Leverage Ecto associations to deep clone db records & do other helpful stuff"
+  @source_url "https://github.com/grantwest/ecto_graf"
 
   def project do
     [
@@ -17,7 +18,9 @@ defmodule EctoGraf.MixProject do
       aliases: aliases(),
       preferred_cli_env: [
         "test.watch": :test
-      ]
+      ],
+      name: "EctoGraf",
+      docs: docs()
     ]
   end
 
@@ -40,7 +43,8 @@ defmodule EctoGraf.MixProject do
       {:ecto, ">= 3.9.0", optional: true},
       {:ecto_sql, ">= 3.9.0", only: [:test]},
       {:postgrex, ">= 0.16.0", only: [:test]},
-      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false}
+      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false}
     ]
   end
 
@@ -56,7 +60,17 @@ defmodule EctoGraf.MixProject do
     %{
       licenses: ["0BSD"],
       maintainers: ["Grant West"],
-      links: %{"GitHub" => "https://github.com/grantwest/ecto_graf"}
+      links: %{"GitHub" => @source_url}
     }
+  end
+
+  defp docs do
+    [
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      extras: ["README.md"],
+      main: "readme",
+      # main: "readme",
+    ]
   end
 end
