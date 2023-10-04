@@ -9,8 +9,31 @@ defmodule EctoGraf do
 
   @max_parameters 65535
 
+  @type target() :: struct()
+  @type related_schema_with_options() :: module() | list()
+
   @doc """
+  Deep clones a target record.
+
+  `target` is the record being cloned.
+
+  `repo` is the ecto repo to operate on, the current implementation supports only a single repo.
+
+  `new_attrs` is a map that will override values on the clone of the target.
+
+  `related_schemas_with_options` is the list of schemas to clone in relation to the target.
+
+
+  ## Examples
+
+  To clone a post with it's comments:
+
+      post = Repo.insert!(%Post{title: "hello"})
+      Repo.insert!(%Comment{body: "p", post_id: post.id})
+      {:ok, clone_id} = EctoGraf.clone(post, Repo, %{title: "New Title"}, [Comment])
   """
+  @spec clone(target(), Ecto.Repo.t(), map(), [related_schema_with_options()]) ::
+          {:ok, any()} | {:error, binary()}
   def clone(target, repo, new_attrs, related_schemas_with_options) do
     %target_schema{} = target
 
