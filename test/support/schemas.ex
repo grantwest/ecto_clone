@@ -25,6 +25,7 @@ defmodule EctoGraf.Schemas.Comment do
 
   schema "comment" do
     field :body, :string
+    field :likes, :integer
     belongs_to :post, Post
     belongs_to :parent, __MODULE__
     belongs_to :circular, Circular

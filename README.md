@@ -15,11 +15,11 @@ To clone a post with it's comments and tags:
 {:ok, cloned_post_id} = EctoGraf.clone(%Post{id: 5}, Repo, %{title: "new title"}, [Comment, PostTag])
 ```
 
+See [clone docs](https://hexdocs.pm/ecto_graf/EctoGraf.html#clone/4) for more information and examples.
+
 ### Todo
 
 - [ ] error when intermediate schemas are missing
-- [ ] allow setting inserted_at, updated_at
-- [ ] filter with where clause
 - [ ] support mysql
 - [ ] support sqlite
 - [ ] clone tables in parallel

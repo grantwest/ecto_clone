@@ -15,39 +15,104 @@ defmodule EctoGraf do
   @doc """
   Deep clones a target record.
 
-  `target` is the record being cloned.
+  `target` is the record to be cloned.
 
   `repo` is the ecto repo to operate on, the current implementation supports only a single repo.
 
   `new_attrs` is a map that will override values on the clone of the target.
 
   `related_schemas_with_options` is the list of schemas to clone in relation to the target.
+  The order of schemas does not matter, EctoGraf determines clone order by associations.
+  See examples for setting options per schema. Suppored options include:
+
+  `map` - a function that takes the source row fields as a map and returns the cloned row fields
+
+  `where` - a function that appends a where clause to the sql query and thus filters which rows should be cloned
 
 
   ## Examples
 
   To clone a post with it's comments:
-
       post = Repo.insert!(%Post{title: "hello"})
       Repo.insert!(%Comment{body: "p", post_id: post.id})
       {:ok, clone_id} = EctoGraf.clone(post, Repo, %{title: "New Title"}, [Comment])
+
+  To clone a post with it's tags, comments, comment edits:
+      EctoGraf.clone(post, Repo, %{}, [
+        PostTag,
+        Comment,
+        CommentEdit
+      ])
+
+  Options on schemas allow chaning values of cloned records:
+      EctoGraf.clone(post, Repo, %{}, [
+        PostTag,
+        [Comment, map: fn comment -> Map.put(comment, :likes, 0) end],
+        CommentEdit
+      ])
+
+  The where option allows selective cloning at the schema level:
+      EctoGraf.clone(post, Repo, %{}, [
+        PostTag,
+        [Comment, where: fn query -> where(query, [comment], comment.likes >= 0) end],
+        CommentEdit
+      ])
+
+  If you use the ecto timestamps and want to set inserted_at on all of your cloned records, you can use the map option globally:
+      now = your_get_timestamp_function()
+      EctoGraf.clone(
+        post,
+        Repo,
+        %{},
+        [PostTag, Comment, CommentEdit],
+        map: fn r -> Map.put(r, :inserted_at, now) end
+      )
+
+  ## Association Requirements
+
+  Each related schema being cloned must have either a belongs_to or has_one through association to the target.
+
+  A Comment can be cloned along with a Post because it has `belongs_to :post, Post`
+
+  A CommentEdit can be cloned with a Post because it has `belongs_to :comment, Comment` and `has_one :post, through: [:comment, :post]`
+
+  It is possible to have multiple possible relations to the target. A schema can have multiple has_one through:
+      schema "comment_pair" do
+        belongs_to :comment_a, Comment
+        belongs_to :comment_b, Comment
+
+        has_one :post_a, through: [:comment_a, :post]
+        has_one :post_b, through: [:comment_b, :post]
+      end
+
+  Or a schema can have both a belongs_to AND has_one through:
+      schema "moderation_flag" do
+        belongs_to :post, Post
+        belongs_to :comment, Comment
+
+        has_one :comment_post, through: [:comment, :post]
+      end
+
+  These examples, while contrived, show that a record can have multple potential paths to being related to the target.
+  Every possible path is exhausted when determing if a record is related to the clone target.
   """
   @spec clone(target(), Ecto.Repo.t(), map(), [related_schema_with_options()]) ::
           {:ok, any()} | {:error, binary()}
-  def clone(target, repo, new_attrs, related_schemas_with_options) do
+  def clone(target, repo, new_attrs, related_schemas_with_options, global_opts \\ []) do
     %target_schema{} = target
 
     schema_options =
       Enum.map(related_schemas_with_options, fn
-        schema when is_atom(schema) -> {schema, []}
-        [schema | opts] when is_atom(schema) -> {schema, opts}
+        schema when is_atom(schema) -> {schema, global_opts}
+        [schema | schema_opts] when is_atom(schema) -> {schema, global_opts ++ schema_opts}
         other -> raise "invalid schema #{inspect(other)}"
       end)
       |> Map.new()
 
-    target_opts = [
-      map: fn t -> Map.merge(t, new_attrs) end
-    ]
+    target_opts =
+      [
+        map: fn t -> Map.merge(t, new_attrs) end
+      ] ++ global_opts
 
     schema_options = Map.put(schema_options, target_schema, target_opts)
     schemas = Map.keys(schema_options)
@@ -175,11 +240,18 @@ defmodule EctoGraf do
   defp stream_rows(schema, target, state) do
     from(row in schema, select: row)
     |> order_by(^schema.__schema__(:primary_key))
+    |> apply_where_opts(schema, state)
     |> join_to_target(schema, target.__struct__, target)
     |> state.repo.stream()
   end
 
-  defp join_to_target(query, schema, schema, target) do
+  defp apply_where_opts(query, schema, state) do
+    state.schema_opts[schema]
+    |> Keyword.get_values(:where)
+    |> Enum.reduce(query, fn where, query -> where.(query) end)
+  end
+
+  defp join_to_target(query, target_schema, target_schema, target) do
     where(query, id: ^target.id)
   end
 
@@ -207,7 +279,7 @@ defmodule EctoGraf do
     |> Enum.filter(&match?(%BelongsTo{}, &1))
   end
 
-  def self_associations(schema) do
+  defp self_associations(schema) do
     belongs_to_associations(schema)
     |> Enum.filter(&(&1.related == schema))
   end
