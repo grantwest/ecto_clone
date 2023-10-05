@@ -1,7 +1,7 @@
 defmodule EctoGraf.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @description "Leverage Ecto associations to deep clone db records & do other helpful stuff"
   @source_url "https://github.com/grantwest/ecto_graf"
 
@@ -69,7 +69,7 @@ defmodule EctoGraf.MixProject do
       source_ref: "v#{@version}",
       source_url: @source_url,
       extras: ["README.md"],
-      main: "readme",
+      main: "readme"
       # main: "readme",
     ]
   end

@@ -13,6 +13,7 @@ defmodule EctoGraf.Repo.Migrations.Test do
 
     create table("comment") do
       add(:body, :string)
+      add(:likes, :integer)
       add(:post_id, references(:post))
       add(:parent_id, references(:comment))
     end

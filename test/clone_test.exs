@@ -180,12 +180,112 @@ defmodule EctoGraf.CloneTest do
     assert count == comment_count
   end
 
+  test "map option on individual schema" do
+    post = Repo.insert!(%Post{title: "hello"})
+    Repo.insert!(%Comment{body: "first", post_id: post.id})
+    before = all_entires()
+
+    {:ok, clone_id} =
+      EctoGraf.clone(post, Repo, %{}, [[Comment, map: fn c -> Map.put(c, :body, "new") end]])
+
+    assert %{
+             posts: [%Post{id: ^clone_id, title: "hello"}],
+             comments: [%Comment{body: "new", post_id: ^clone_id}],
+             edits: [],
+             tags: [],
+             post_tags: [],
+             comment_pairs: []
+           } = diff(before, all_entires())
+  end
+
+  test "global map option" do
+    post = Repo.insert!(%Post{title: "hello"})
+    Repo.insert!(%Comment{body: "first", post_id: post.id})
+    before = all_entires()
+
+    {:ok, clone_id} =
+      EctoGraf.clone(post, Repo, %{}, [Comment], map: fn c -> Map.put(c, :body, "new") end)
+
+    assert %{
+             posts: [%Post{id: ^clone_id, title: "hello"}],
+             comments: [%Comment{body: "new", post_id: ^clone_id}],
+             edits: [],
+             tags: [],
+             post_tags: [],
+             comment_pairs: []
+           } = diff(before, all_entires())
+  end
+
+  test "combined schema map option and global map option" do
+    post = Repo.insert!(%Post{title: "hello"})
+    Repo.insert!(%Comment{body: "first", likes: 1, post_id: post.id})
+    before = all_entires()
+
+    {:ok, clone_id} =
+      EctoGraf.clone(
+        post,
+        Repo,
+        %{},
+        [[Comment, map: fn c -> Map.put(c, :likes, -1) end]],
+        map: fn c -> Map.put(c, :body, "new") end
+      )
+
+    assert %{
+             posts: [%Post{id: ^clone_id, title: "hello"}],
+             comments: [%Comment{body: "new", likes: -1, post_id: ^clone_id}],
+             edits: [],
+             tags: [],
+             post_tags: [],
+             comment_pairs: []
+           } = diff(before, all_entires())
+  end
+
+  test "schema map option takes precedence over global map option" do
+    post = Repo.insert!(%Post{title: "hello"})
+    Repo.insert!(%Comment{body: "first", likes: 1, post_id: post.id})
+    before = all_entires()
+
+    {:ok, clone_id} =
+      EctoGraf.clone(
+        post,
+        Repo,
+        %{},
+        [[Comment, map: fn c -> Map.put(c, :body, "schema") end]],
+        map: fn c -> Map.put(c, :body, "global") end
+      )
+
+    assert %{
+             posts: [%Post{id: ^clone_id, title: "hello"}],
+             comments: [%Comment{body: "schema", post_id: ^clone_id}],
+             edits: [],
+             tags: [],
+             post_tags: [],
+             comment_pairs: []
+           } = diff(before, all_entires())
+  end
+
+  test "where option" do
+    post = Repo.insert!(%Post{title: "hello"})
+    Repo.insert!(%Comment{body: "1", post_id: post.id})
+    Repo.insert!(%Comment{body: "2", post_id: post.id})
+    before = all_entires()
+
+    {:ok, clone_id} =
+      EctoGraf.clone(post, Repo, %{}, [[Comment, where: &where(&1, [c], c.body == "1")]])
+
+    assert %{
+             posts: [%Post{id: ^clone_id, title: "hello"}],
+             comments: [%Comment{body: "1", post_id: ^clone_id}],
+             edits: [],
+             tags: [],
+             post_tags: [],
+             comment_pairs: []
+           } = diff(before, all_entires())
+  end
+
   test "target not found error" do
     post = %Post{id: -1}
     assert EctoGraf.clone(post, Repo, %{}, []) == {:error, "target not found"}
-  end
-
-  test "circular associations error" do
   end
 
   test "no association to target error" do
@@ -210,6 +310,10 @@ defmodule EctoGraf.CloneTest do
                  fn ->
                    EctoGraf.clone(post, Repo, %{}, [CommentEdit])
                  end
+  end
+
+  @tag :skip
+  test "circular associations error" do
   end
 
   defp all_entires() do
