@@ -1,6 +1,6 @@
-defmodule EctoGraf do
+defmodule EctoClone do
   @moduledoc """
-  Documentation for `EctoGraf`.
+  Documentation for `EctoClone`.
   """
 
   import Ecto.Query
@@ -22,7 +22,7 @@ defmodule EctoGraf do
   `new_attrs` is a map that will override values on the clone of the target.
 
   `related_schemas_with_options` is the list of schemas to clone in relation to the target.
-  The order of schemas does not matter, EctoGraf determines clone order by associations.
+  The order of schemas does not matter, EctoClone determines clone order by associations.
   See examples for setting options per schema. Suppored options include:
 
   `map` - a function that takes the source row fields as a map and returns the cloned row fields
@@ -35,24 +35,24 @@ defmodule EctoGraf do
   To clone a post with it's comments:
       post = Repo.insert!(%Post{title: "hello"})
       Repo.insert!(%Comment{body: "p", post_id: post.id})
-      {:ok, clone_id} = EctoGraf.clone(post, Repo, %{title: "New Title"}, [Comment])
+      {:ok, clone_id} = EctoClone.clone(post, Repo, %{title: "New Title"}, [Comment])
 
   To clone a post with it's tags, comments, comment edits:
-      EctoGraf.clone(post, Repo, %{}, [
+      EctoClone.clone(post, Repo, %{}, [
         PostTag,
         Comment,
         CommentEdit
       ])
 
   Options on schemas allow chaning values of cloned records:
-      EctoGraf.clone(post, Repo, %{}, [
+      EctoClone.clone(post, Repo, %{}, [
         PostTag,
         [Comment, map: fn comment -> Map.put(comment, :likes, 0) end],
         CommentEdit
       ])
 
   The where option allows selective cloning at the schema level:
-      EctoGraf.clone(post, Repo, %{}, [
+      EctoClone.clone(post, Repo, %{}, [
         PostTag,
         [Comment, where: fn query -> where(query, [comment], comment.likes >= 0) end],
         CommentEdit
@@ -60,7 +60,7 @@ defmodule EctoGraf do
 
   If you use the ecto timestamps and want to set inserted_at on all of your cloned records, you can use the map option globally:
       now = your_get_timestamp_function()
-      EctoGraf.clone(
+      EctoClone.clone(
         post,
         Repo,
         %{},

@@ -1,21 +1,21 @@
-defmodule EctoGraf.DataCase do
+defmodule EctoClone.DataCase do
   use ExUnit.CaseTemplate
 
   using do
     quote do
-      alias EctoGraf.Repo
+      alias EctoClone.Repo
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import EctoGraf.DataCase
+      import EctoClone.DataCase
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EctoGraf.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(EctoClone.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(EctoGraf.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(EctoClone.Repo, {:shared, self()})
     end
 
     :ok

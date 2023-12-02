@@ -1,13 +1,13 @@
-defmodule EctoGraf.MixProject do
+defmodule EctoClone.MixProject do
   use Mix.Project
 
   @version "0.2.0"
   @description "Leverage Ecto associations to deep clone db records & do other helpful stuff"
-  @source_url "https://github.com/grantwest/ecto_graf"
+  @source_url "https://github.com/grantwest/ecto_clone"
 
   def project do
     [
-      app: :ecto_graf,
+      app: :ecto_clone,
       version: @version,
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -19,7 +19,7 @@ defmodule EctoGraf.MixProject do
       preferred_cli_env: [
         "test.watch": :test
       ],
-      name: "EctoGraf",
+      name: "EctoClone",
       docs: docs()
     ]
   end
@@ -30,7 +30,7 @@ defmodule EctoGraf.MixProject do
     ]
 
     case Mix.env() do
-      :test -> always ++ [mod: {EctoGraf.Test.Application, []}]
+      :test -> always ++ [mod: {EctoClone.Test.Application, []}]
       _ -> always
     end
   end
@@ -40,7 +40,7 @@ defmodule EctoGraf.MixProject do
 
   defp deps do
     [
-      {:ecto, ">= 3.9.0", optional: true},
+      {:ecto, ">= 3.9.0"},
       {:ecto_sql, ">= 3.9.0", only: [:test]},
       {:postgrex, ">= 0.16.0", only: [:test]},
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
@@ -70,7 +70,6 @@ defmodule EctoGraf.MixProject do
       source_url: @source_url,
       extras: ["README.md"],
       main: "readme"
-      # main: "readme",
     ]
   end
 end

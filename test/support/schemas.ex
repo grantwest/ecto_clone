@@ -1,4 +1,4 @@
-defmodule EctoGraf.Schemas.User do
+defmodule EctoClone.Schemas.User do
   use Ecto.Schema
 
   schema "user" do
@@ -6,10 +6,10 @@ defmodule EctoGraf.Schemas.User do
   end
 end
 
-defmodule EctoGraf.Schemas.Post do
+defmodule EctoClone.Schemas.Post do
   use Ecto.Schema
-  alias EctoGraf.Schemas.User
-  alias EctoGraf.Schemas.Tag
+  alias EctoClone.Schemas.User
+  alias EctoClone.Schemas.Tag
 
   schema "post" do
     field :title, :string
@@ -19,9 +19,9 @@ defmodule EctoGraf.Schemas.Post do
   end
 end
 
-defmodule EctoGraf.Schemas.Comment do
+defmodule EctoClone.Schemas.Comment do
   use Ecto.Schema
-  alias EctoGraf.Schemas.Post
+  alias EctoClone.Schemas.Post
 
   schema "comment" do
     field :body, :string
@@ -32,9 +32,9 @@ defmodule EctoGraf.Schemas.Comment do
   end
 end
 
-defmodule EctoGraf.Schemas.CommentEdit do
+defmodule EctoClone.Schemas.CommentEdit do
   use Ecto.Schema
-  alias EctoGraf.Schemas.Comment
+  alias EctoClone.Schemas.Comment
 
   schema "comment_edit" do
     field :diff, :string
@@ -44,9 +44,9 @@ defmodule EctoGraf.Schemas.CommentEdit do
   end
 end
 
-defmodule EctoGraf.Schemas.Tag do
+defmodule EctoClone.Schemas.Tag do
   use Ecto.Schema
-  alias EctoGraf.Schemas.Post
+  alias EctoClone.Schemas.Post
 
   schema "tag" do
     field :name, :string
@@ -55,10 +55,10 @@ defmodule EctoGraf.Schemas.Tag do
   end
 end
 
-defmodule EctoGraf.Schemas.PostTag do
+defmodule EctoClone.Schemas.PostTag do
   use Ecto.Schema
-  alias EctoGraf.Schemas.Post
-  alias EctoGraf.Schemas.Tag
+  alias EctoClone.Schemas.Post
+  alias EctoClone.Schemas.Tag
 
   @primary_key false
   schema "post_tag" do
@@ -67,10 +67,10 @@ defmodule EctoGraf.Schemas.PostTag do
   end
 end
 
-defmodule EctoGraf.Schemas.ModerationFlag do
+defmodule EctoClone.Schemas.ModerationFlag do
   use Ecto.Schema
-  alias EctoGraf.Schemas.Post
-  alias EctoGraf.Schemas.Comment
+  alias EctoClone.Schemas.Post
+  alias EctoClone.Schemas.Comment
 
   # belongs_to & has_one through
   schema "moderation_flag" do
@@ -81,9 +81,9 @@ defmodule EctoGraf.Schemas.ModerationFlag do
   end
 end
 
-defmodule EctoGraf.Schemas.CommentPair do
+defmodule EctoClone.Schemas.CommentPair do
   use Ecto.Schema
-  alias EctoGraf.Schemas.Comment
+  alias EctoClone.Schemas.Comment
 
   # belongs_to & has_one through
   schema "comment_pair" do
@@ -95,9 +95,9 @@ defmodule EctoGraf.Schemas.CommentPair do
   end
 end
 
-defmodule EctoGraf.Schemas.Circular do
+defmodule EctoClone.Schemas.Circular do
   use Ecto.Schema
-  alias EctoGraf.Schemas.CommentEdit
+  alias EctoClone.Schemas.CommentEdit
 
   # to check circular reference error
   schema "circular" do

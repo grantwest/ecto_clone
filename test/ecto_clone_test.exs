@@ -1,20 +1,22 @@
-defmodule EctoGraf.CloneTest do
+defmodule EctoClone.CloneTest do
   use ExUnit.Case, async: true
   import Ecto.Query
-  alias EctoGraf.Repo
-  alias EctoGraf.Schemas.Comment
-  alias EctoGraf.Schemas.CommentEdit
-  alias EctoGraf.Schemas.CommentPair
-  alias EctoGraf.Schemas.Post
-  alias EctoGraf.Schemas.PostTag
-  alias EctoGraf.Schemas.Tag
-  alias EctoGraf.Schemas.User
+  alias EctoClone.Repo
+  alias EctoClone.Schemas.Comment
+  alias EctoClone.Schemas.CommentEdit
+  alias EctoClone.Schemas.CommentPair
+  alias EctoClone.Schemas.Post
+  alias EctoClone.Schemas.PostTag
+  alias EctoClone.Schemas.Tag
+  alias EctoClone.Schemas.User
+
+  doctest EctoClone
 
   test "clone simplest post" do
     post = Repo.insert!(%Post{title: "hello"})
     before = all_entires()
 
-    {:ok, clone_id} = EctoGraf.clone(post, Repo, %{}, [])
+    {:ok, clone_id} = EctoClone.clone(post, Repo, %{}, [])
 
     assert %{
              posts: [%Post{id: ^clone_id, title: "hello", author_id: nil}],
@@ -31,7 +33,7 @@ defmodule EctoGraf.CloneTest do
     post = Repo.insert!(%Post{title: "hello", author_id: user.id})
     before = all_entires()
 
-    {:ok, clone_id} = EctoGraf.clone(post, Repo, %{}, [])
+    {:ok, clone_id} = EctoClone.clone(post, Repo, %{}, [])
 
     user_id = user.id
 
@@ -49,7 +51,7 @@ defmodule EctoGraf.CloneTest do
     post = Repo.insert!(%Post{title: "hello"})
     before = all_entires()
 
-    {:ok, clone_id} = EctoGraf.clone(post, Repo, %{title: "newtitle"}, [])
+    {:ok, clone_id} = EctoClone.clone(post, Repo, %{title: "newtitle"}, [])
 
     assert %{
              posts: [%Post{id: ^clone_id, title: "newtitle"}],
@@ -66,7 +68,7 @@ defmodule EctoGraf.CloneTest do
     Repo.insert!(%Comment{body: "first", post_id: post.id})
     before = all_entires()
 
-    {:ok, clone_id} = EctoGraf.clone(post, Repo, %{}, [Comment])
+    {:ok, clone_id} = EctoClone.clone(post, Repo, %{}, [Comment])
 
     assert %{
              posts: [%Post{id: ^clone_id, title: "hello"}],
@@ -84,7 +86,7 @@ defmodule EctoGraf.CloneTest do
     Repo.insert!(%Comment{body: "c", post_id: post.id, parent_id: comment.id})
     before = all_entires()
 
-    {:ok, clone_id} = EctoGraf.clone(post, Repo, %{}, [Comment])
+    {:ok, clone_id} = EctoClone.clone(post, Repo, %{}, [Comment])
 
     assert %{
              posts: [%Post{id: ^clone_id, title: "hello"}],
@@ -105,7 +107,7 @@ defmodule EctoGraf.CloneTest do
     Repo.insert!(%CommentEdit{diff: "d", comment_id: comment.id})
     before = all_entires()
 
-    {:ok, clone_id} = EctoGraf.clone(post, Repo, %{}, [Comment, CommentEdit])
+    {:ok, clone_id} = EctoClone.clone(post, Repo, %{}, [Comment, CommentEdit])
 
     assert %{
              posts: [%Post{id: ^clone_id, title: "hello"}],
@@ -123,7 +125,7 @@ defmodule EctoGraf.CloneTest do
     Repo.insert!(%PostTag{post_id: post.id, tag_id: tag.id})
     before = all_entires()
 
-    {:ok, clone_id} = EctoGraf.clone(post, Repo, %{}, [PostTag])
+    {:ok, clone_id} = EctoClone.clone(post, Repo, %{}, [PostTag])
 
     tag_id = tag.id
 
@@ -144,7 +146,7 @@ defmodule EctoGraf.CloneTest do
     Repo.insert!(%CommentPair{comment_a_id: comment_a.id, comment_b_id: comment_b.id})
     before = all_entires()
 
-    {:ok, clone_id} = EctoGraf.clone(post, Repo, %{}, [Comment, CommentPair])
+    {:ok, clone_id} = EctoClone.clone(post, Repo, %{}, [Comment, CommentPair])
 
     assert %{
              posts: [%Post{id: ^clone_id, title: "hello"}],
@@ -174,7 +176,7 @@ defmodule EctoGraf.CloneTest do
       {^count, nil} = Repo.insert_all(Comment, comments)
     end)
 
-    {:ok, clone_id} = EctoGraf.clone(post, Repo, %{}, [Comment])
+    {:ok, clone_id} = EctoClone.clone(post, Repo, %{}, [Comment])
 
     count = Repo.aggregate(from(c in Comment, where: c.post_id == ^clone_id), :count)
     assert count == comment_count
@@ -186,7 +188,7 @@ defmodule EctoGraf.CloneTest do
     before = all_entires()
 
     {:ok, clone_id} =
-      EctoGraf.clone(post, Repo, %{}, [[Comment, map: fn c -> Map.put(c, :body, "new") end]])
+      EctoClone.clone(post, Repo, %{}, [[Comment, map: fn c -> Map.put(c, :body, "new") end]])
 
     assert %{
              posts: [%Post{id: ^clone_id, title: "hello"}],
@@ -204,7 +206,7 @@ defmodule EctoGraf.CloneTest do
     before = all_entires()
 
     {:ok, clone_id} =
-      EctoGraf.clone(post, Repo, %{}, [Comment], map: fn c -> Map.put(c, :body, "new") end)
+      EctoClone.clone(post, Repo, %{}, [Comment], map: fn c -> Map.put(c, :body, "new") end)
 
     assert %{
              posts: [%Post{id: ^clone_id, title: "hello"}],
@@ -222,7 +224,7 @@ defmodule EctoGraf.CloneTest do
     before = all_entires()
 
     {:ok, clone_id} =
-      EctoGraf.clone(
+      EctoClone.clone(
         post,
         Repo,
         %{},
@@ -246,7 +248,7 @@ defmodule EctoGraf.CloneTest do
     before = all_entires()
 
     {:ok, clone_id} =
-      EctoGraf.clone(
+      EctoClone.clone(
         post,
         Repo,
         %{},
@@ -271,7 +273,7 @@ defmodule EctoGraf.CloneTest do
     before = all_entires()
 
     {:ok, clone_id} =
-      EctoGraf.clone(post, Repo, %{}, [[Comment, where: &where(&1, [c], c.body == "1")]])
+      EctoClone.clone(post, Repo, %{}, [[Comment, where: &where(&1, [c], c.body == "1")]])
 
     assert %{
              posts: [%Post{id: ^clone_id, title: "hello"}],
@@ -285,7 +287,7 @@ defmodule EctoGraf.CloneTest do
 
   test "target not found error" do
     post = %Post{id: -1}
-    assert EctoGraf.clone(post, Repo, %{}, []) == {:error, "target not found"}
+    assert EctoClone.clone(post, Repo, %{}, []) == {:error, "target not found"}
   end
 
   test "no association to target error" do
@@ -293,9 +295,9 @@ defmodule EctoGraf.CloneTest do
     post = Repo.insert!(%Post{title: "hello", author_id: user.id})
 
     assert_raise RuntimeError,
-                 "Elixir.EctoGraf.Schemas.User has no belongs_to or has_one association to Elixir.EctoGraf.Schemas.Post",
+                 "Elixir.EctoClone.Schemas.User has no belongs_to or has_one association to Elixir.EctoClone.Schemas.Post",
                  fn ->
-                   EctoGraf.clone(post, Repo, %{}, [User])
+                   EctoClone.clone(post, Repo, %{}, [User])
                  end
   end
 
@@ -306,9 +308,9 @@ defmodule EctoGraf.CloneTest do
     Repo.insert!(%CommentEdit{diff: "d", comment_id: comment.id})
 
     assert_raise RuntimeError,
-                 "Elixir.EctoGraf.Schemas.Comment missing from schemas to clone",
+                 "Elixir.EctoClone.Schemas.Comment missing from schemas to clone",
                  fn ->
-                   EctoGraf.clone(post, Repo, %{}, [CommentEdit])
+                   EctoClone.clone(post, Repo, %{}, [CommentEdit])
                  end
   end
 

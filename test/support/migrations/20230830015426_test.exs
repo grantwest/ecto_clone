@@ -1,4 +1,4 @@
-defmodule EctoGraf.Repo.Migrations.Test do
+defmodule EctoClone.Repo.Migrations.Test do
   use Ecto.Migration
 
   def change do
